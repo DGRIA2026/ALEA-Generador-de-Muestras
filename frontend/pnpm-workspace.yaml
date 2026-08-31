@@ -1,0 +1,14 @@
+allowBuilds:
+  electron: true
+  electron-winstaller: true
+  esbuild: true
+# Ajustes de red para enlaces lentos/inestables. pnpm 11 lee su configuración
+# de este archivo (NO de .npmrc ni de variables npm_config_*).
+# fetchTimeout: el default de 60s no alcanza para tarballs grandes como
+# app-builder-bin (69 MB), que abortaba con "operation was aborted due to timeout".
+# networkConcurrency: con el default (16) cada descarga cae a ~1 KiB/s y expiran todas.
+fetchTimeout: 1800000
+fetchRetries: 3
+fetchRetryMintimeout: 20000
+fetchRetryMaxtimeout: 180000
+networkConcurrency: 4

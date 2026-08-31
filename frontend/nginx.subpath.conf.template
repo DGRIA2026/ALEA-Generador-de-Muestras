@@ -1,0 +1,56 @@
+server {
+  listen 8080;
+  listen [::]:8080;
+  server_name _;
+  absolute_redirect off;
+
+  index index.html;
+
+  location = /_alea_health {
+    access_log off;
+    default_type text/plain;
+    return 200 "ok\n";
+  }
+
+  location = ${RUNTIME_CONFIG_URI} {
+    alias /tmp/alea-runtime/runtime-config.js;
+    default_type application/javascript;
+    add_header Cache-Control "no-store, no-cache, must-revalidate, max-age=0" always;
+    add_header Pragma "no-cache" always;
+    add_header Expires "0" always;
+  }
+
+  location = ${API_BASE_PATH} {
+    return 308 ${API_BASE_PATH}/$is_args$args;
+  }
+
+  location ^~ ${API_BASE_PATH}/ {
+    proxy_pass ${BACKEND_INTERNAL_URL};
+    proxy_http_version 1.1;
+    proxy_redirect off;
+
+    proxy_set_header Host $alea_forwarded_host;
+    proxy_set_header X-Real-IP $remote_addr;
+    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+    proxy_set_header X-Forwarded-Host $alea_forwarded_host;
+    proxy_set_header X-Forwarded-Proto $alea_forwarded_proto;
+    proxy_set_header X-Forwarded-Prefix ${API_BASE_PATH};
+
+    proxy_connect_timeout 5s;
+    proxy_send_timeout 60s;
+    proxy_read_timeout 60s;
+  }
+
+  location = ${BASE_PATH} {
+    return 308 ${BASE_PATH}/$is_args$args;
+  }
+
+  location ^~ ${BASE_PATH}/ {
+    alias /usr/share/nginx/html/;
+    try_files $uri $uri/ ${BASE_PATH}/index.html;
+  }
+
+  location / {
+    return 404;
+  }
+}

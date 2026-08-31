@@ -1,0 +1,14 @@
+node_modules
+dist
+coverage
+test
+*.log
+npm-debug.log
+pnpm-debug.log
+.git
+.gitignore
+.env*
+certs
+backups
+uploads
+logs
