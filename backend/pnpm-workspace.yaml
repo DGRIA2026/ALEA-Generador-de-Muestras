@@ -1,0 +1,10 @@
+allowBuilds:
+  '@nestjs/core': true
+  bcrypt: true
+  unrs-resolver: true
+# Ajustes de red para enlaces lentos/inestables (ver frontend/pnpm-workspace.yaml).
+fetchTimeout: 1800000
+fetchRetries: 3
+fetchRetryMintimeout: 20000
+fetchRetryMaxtimeout: 180000
+networkConcurrency: 4

@@ -1,0 +1,33 @@
+FROM node:22-alpine AS builder
+WORKDIR /app
+
+RUN corepack enable
+
+COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
+RUN pnpm install --frozen-lockfile
+
+COPY . .
+RUN pnpm run build
+
+FROM nginx:1.27-alpine AS runner
+
+ENV BASE_PATH=/ \
+    API_BASE_PATH=/api \
+    BACKEND_INTERNAL_URL=http://backend:3001
+
+COPY --from=builder /app/dist /usr/share/nginx/html
+COPY nginx.conf /etc/nginx/nginx.conf
+COPY nginx.root.conf.template nginx.subpath.conf.template runtime-config.js.template /opt/alea/
+COPY docker-entrypoint.sh /usr/local/bin/alea-frontend-entrypoint
+
+RUN chmod 0555 /usr/local/bin/alea-frontend-entrypoint
+
+EXPOSE 8080
+
+USER nginx
+
+HEALTHCHECK --interval=10s --timeout=3s --start-period=5s --retries=5 \
+  CMD wget -q -T 2 -O /dev/null http://127.0.0.1:8080/_alea_health || exit 1
+
+ENTRYPOINT ["/usr/local/bin/alea-frontend-entrypoint"]
+CMD ["nginx", "-g", "daemon off;"]
